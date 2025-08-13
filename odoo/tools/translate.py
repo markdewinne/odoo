@@ -1759,7 +1759,10 @@ def _get_translation_upgrade_queries(cr, field):
                     src_value = field.translate(lambda v: None, src_value)
                     for lang in sorted(missing_languages):
                         new_values[lang] = src_value
-            query = f'UPDATE "{Model._table}" SET "{field.name}" = %s WHERE id = %s'
+            query = psycopg2.sql.SQL('UPDATE {} SET {} = %s WHERE id = %s').format(
+                psycopg2.sql.Identifier(Model._table),
+                psycopg2.sql.Identifier(field.name)
+            )
             migrate_queries.append(cr.mogrify(query, [Json(new_values), id_]).decode())
 
         query = "DELETE FROM _ir_translation WHERE type = 'model_terms' AND name = %s"
